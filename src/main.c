@@ -15,6 +15,8 @@
 #include <stdbool.h>
 #include "mjson.h"
 #include <time.h>
+#include "wifi.h"
+#include "json_parser.h"
 
 #define XMAX 239
 #define YMAX 319
@@ -22,11 +24,10 @@
 char buffer[4096];
 char serialBuffer[USART_BUFFER_SIZE];
 
-bool enterCommandMode(void);
-void initWiFiModule();
+
 int getPollutionIndex(char * serialBuffer);
 
-#define AIR_MAX_SAMPLES 25
+
 
 
 unsigned int t[12];
@@ -35,47 +36,7 @@ char s[12];
 
 time_t timeStructure1;
 
-struct air_sample_str_t {
-	char t_str[11];
-	char v_str[6];
 
-};
-
-struct par_sample_str_list_t {
-	struct air_sample_str_t sample_list[AIR_MAX_SAMPLES];
-	uint8_t last_sample_index;
-} psl;
-
-struct par_list_str_t {
-	struct par_sample_str_list_t par_list[20];
-} pssl;
-
-
-struct air_sample_t {
-	unsigned int t;
-	double v;
-	char s;
-};
-
-struct par_sample_list_t {
-	struct air_sample_t sample_list[AIR_MAX_SAMPLES];
-} sl;
-
-struct par_list_t {
-	struct par_sample_list_t par_list[20];
-};
-
-struct values_list_t {
-	struct par_list_t value_list[1];
-};
-
-struct var_t {
-	char var_value[12];
-};
-
-struct var_list_t {
-	struct var_t var1[20];
-};
 
 
 /*
@@ -104,62 +65,7 @@ static const struct json_attr_t time_json_attrs[] =
 				{ NULL }, };
 				*/
 
-uint8_t parseJSONMessage(uint8_t parNum, struct par_list_str_t *pssl,
-		char * jsonMsg) {
 
-	char *colonPtr;
-	char *currStart;
-	char val_str[11];
-	int i;
-
-
-
-	currStart = jsonMsg;
-	pssl->par_list[parNum - 1].last_sample_index = AIR_MAX_SAMPLES-1;
-
-	for (i = 0; i < AIR_MAX_SAMPLES; i++) {
-		//we look for t
-		colonPtr = strchr(currStart, ':');
-		pssl->par_list[parNum - 1].sample_list[i].t_str[10] = 0;
-		if (colonPtr) {
-			currStart = colonPtr + 1;
-			strncpy(pssl->par_list[parNum - 1].sample_list[i].t_str, currStart, 10);
-		} else {
-			return -1;
-		}
-
-
-		//we look for v
-		pssl->par_list[parNum - 1].sample_list[i].v_str[4] = 0;
-		colonPtr = strchr(currStart, ':');
-
-		if (colonPtr) {
-			currStart = colonPtr + 1;
-			strncpy(val_str, currStart, 4);
-			if(atoi(val_str) > 1000){ //only 24 samples
-				pssl->par_list[parNum - 1].last_sample_index = i-1;
-				break;
-			} else {
-				strcpy(pssl->par_list[parNum - 1].sample_list[i].v_str,val_str);
-			}
-		} else {
-			return -1;
-		}
-
-		//look for s and skip
-		colonPtr = strchr(currStart, ':');
-		if (colonPtr) {
-			currStart = colonPtr + 1;
-		} else {
-			return -1;
-		}
-
-	}
-
-
-
-	return 0;
-}
 
 void displayTable(uint8_t parNum,struct par_list_str_t *pssl){
 	struct tm time1;
@@ -402,26 +308,7 @@ int getPollutionIndex(char * serialBuffer) {
 	memset(serialBuffer, 0, 4096);
 	TM_USART_ClearBuffer(USART2);
 
-	//local web server
-	//TM_USART_Puts(USART2,"GET /gettemp.cgi?format=json HTTP/1.0\r\n\r\n");
 
-	//aqui.org
-	/*
-	 TM_USART_Puts(USART2,
-	 "GET /feed/warsaw/?token=0b731d5fee66f600468a4fb3220ee660f365a24e HTTP/1.0\r\n");
-	 TM_USART_Puts(USART2, "Accept-Encoding: gzip,deflate\r\n");
-	 TM_USART_Puts(USART2, "Host: 139.162.71.178\r\n");
-	 TM_USART_Puts(USART2, "Connection: Keep-Alive\r\n\r\n");
-	 */
-
-	//gios.gov.pl
-	/*
-	 TM_USART_Puts(USART2,
-	 "GET /pjp-api/rest/data/getData/3764 HTTP/1.1\r\n");
-	 TM_USART_Puts(USART2, "Accept-Encoding: gzip,deflate\r\n");
-	 TM_USART_Puts(USART2, "Host: api.gios.gov.pl\r\n");
-	 TM_USART_Puts(USART2, "Connection: Keep-Alive\r\n\r\n");
-	 */
 
 	//bielany
 	TM_USART_Puts(USART2,

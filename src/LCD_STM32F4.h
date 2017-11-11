@@ -58,12 +58,7 @@
 #include "stm32f4xx_it.h"
 #include "fonts.h"
 
-/* Header files with pictures as integer arrays in RGB565 format */
-#include "image_to_RGB565/logo_urel.h"
-#include "image_to_RGB565/wave.h"
-#include "image_to_RGB565/mandelbrot1.h"
-#include "image_to_RGB565/mandelbrot2.h"
-#include "image_to_RGB565/kasia.h"
+
 
 
 /* Type Definitions **********************************************************/

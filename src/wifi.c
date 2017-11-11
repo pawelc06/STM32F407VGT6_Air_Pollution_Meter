@@ -13,7 +13,7 @@
 
 extern char serialBuffer[USART_BUFFER_SIZE];
 
-void initWiFiModule() {
+void initWiFiModule(char *ipAddress) {
 	bool resWiFi;
 
 	TM_GPIO_SetPinHigh(GPIOA, GPIO_Pin_4);
@@ -51,7 +51,10 @@ void initWiFiModule() {
 	//sjp.pl
 	//TM_USART_Puts(USART2, "AT+NETP=TCP,Client,80,195.187.34.140\r\n");
 
-	TM_USART_Puts(USART2, "AT+NETP=TCP,Client,80,85.25.104.143\r\n");
+	TM_USART_Puts(USART2, "AT+NETP=TCP,Client,80,");
+	TM_USART_Puts(USART2, ipAddress);
+	TM_USART_Puts(USART2, "\r\n");
+
 
 	//TM_USART_Puts(USART2,"AT+NETP=TCP,Client,80,192.168.0.31\r\n");
 	Delay_ms(50);
@@ -152,6 +155,43 @@ int getPollutionIndex(char * serialBuffer) {
 
 	httpResponseLength = strlen(serialBuffer);
 #endif
+
+	return httpResponseLength;
+}
+
+
+
+
+int getTimeFromWeb(char * serialBuffer) {
+	uint8_t c;
+	int httpResponseLength;
+	char lenStr[5];
+	memset(serialBuffer, 0, 4096);
+
+
+
+	TM_USART_ClearBuffer(USART2);
+
+	//bielany
+	TM_USART_Puts(USART2,"GET /?zone=Europe%2FWarsaw&format=json&key=G7BLC6X458B0 HTTP/1.1\r\n");
+	TM_USART_Puts(USART2, "Accept-Encoding: gzip,deflate\r\n");
+	TM_USART_Puts(USART2, "Host: api.timezonedb.com\r\n");
+	TM_USART_Puts(USART2, "Connection: Keep-Alive\r\n\r\n");
+
+	Delay_ms(5000);
+	int i = 0;
+
+	while (!TM_USART_BufferEmpty(USART2)) {
+		c = TM_USART_Getc(USART2);
+		//TM_USART_Putc(USART1, c);
+		serialBuffer[i] = c;
+		i++;
+
+	}
+	serialBuffer[i] = 0;
+
+	httpResponseLength = strlen(serialBuffer);
+
 
 	return httpResponseLength;
 }

@@ -87,16 +87,16 @@ void displayChart(uint8_t parNum, struct par_list_str_t *pssl) {
 
 	//allowed level - 25 ug
 	Draw_Line(XMAX - 25 * 3 - 20, YMAX - 40 + 5, XMAX - 25 * 3 - 20, 20,
-			LCD_YELLOW);
+	LCD_YELLOW);
 
 	Draw_Line(XMAX - 20 * 3 - 20, YMAX - 40 + 5, XMAX - 20 * 3 - 20, 20,
-			LCD_GREY);
+	LCD_GREY);
 	Draw_Line(XMAX - 40 * 3 - 20, YMAX - 40 + 5, XMAX - 40 * 3 - 20, 20,
-			LCD_GREY);
+	LCD_GREY);
 	Draw_Line(XMAX - 60 * 3 - 20, YMAX - 40 + 5, XMAX - 60 * 3 - 20, 20,
-			LCD_GREY);
+	LCD_GREY);
 	Draw_Line(XMAX - 80 * 3 - 20, YMAX - 40 + 5, XMAX - 80 * 3 - 20, 20,
-			LCD_GREY);
+	LCD_GREY);
 
 	Display_String(XMAX - 25 * 3 - 20 - 6, YMAX - 5 - 8 + 5, "25", LCD_BLACK);
 	Display_String(XMAX - 25 * 3 - 20 + 6, YMAX - 8 + 5, "max", LCD_BLACK);
@@ -114,7 +114,16 @@ void displayChart(uint8_t parNum, struct par_list_str_t *pssl) {
 		timeStructure1 = (time_t) atoi(
 				pssl->par_list[parNum - 1].sample_list[i].t_str);
 		time1 = *localtime(&timeStructure1);
-		h = time1.tm_hour + 2;
+
+		//summer time
+		if (dst[0] == '1') {
+			h = time1.tm_hour + 2;
+		} else {
+
+			//winter time
+			h = time1.tm_hour + 1;
+		}
+
 		if (h == 24) {
 			h = 0;
 		}
@@ -129,7 +138,7 @@ void displayChart(uint8_t parNum, struct par_list_str_t *pssl) {
 		itoa(h, timeStr, 10);
 
 		Draw_Line(XMAX - prev_val * 3 - 20, j, XMAX - val * 3 - 20, j - 20,
-				LCD_RED);
+		LCD_RED);
 
 		Display_String(XMAX - 18, j - 20 + 4 + 5, timeStr, LCD_BLACK);
 
@@ -171,15 +180,30 @@ int main(void) {
 
 	TM_USART_Init(USART2, TM_USART_PinsPack_1, 115200);
 
+	//time server
+	initWiFiModule("172.110.8.235");
+	Delay_ms(5000);
+	getTimeFromWeb(serialBuffer);
+	if (serialBuffer)
+		parseDateTime(serialBuffer);
+
 #ifndef TEST_MODE
-	initWiFiModule();
+	//air server
+	initWiFiModule("85.25.104.143");
 	Delay_ms(5000);
 #endif
 
-
-
 	while (1) {
-		Clear_Screen(0x0000);
+		//time server
+		initWiFiModule("172.110.8.235");
+		Delay_ms(5000);
+		getTimeFromWeb(serialBuffer);
+		if (serialBuffer)
+			parseDateTime(serialBuffer);
+
+		initWiFiModule("85.25.104.143");
+		Delay_ms(5000);
+
 		Set_Font(&Font8x12);
 		Display_String(75, 310, "Sending HTTP Request ->", LCD_WHITE);
 
@@ -188,20 +212,23 @@ int main(void) {
 		itoa(httpRespLength, lenString, 10);
 		Display_String(90, 100, lenString, LCD_WHITE);
 
+		/*
+		 jsonBegin = serialBuffer;
+
+		 jsonBegin = strstr(jsonBegin, "[[");
+		 parseJSONMessageMJSON(6, &pssl, jsonBegin);
+		 */
+
 		jsonBegin = serialBuffer;
 		for (int i = 0; i < 6; i++) {
 
 			jsonBegin = strstr(jsonBegin + 1, "[");
 		}
 
-		//jsonBegin = strstr(jsonBegin, "{");
-		parseJSONMessage(6, &pssl, jsonBegin);
-
-		int status = 0;
-
 		if (jsonBegin) {
-			parseJSONMessage(6, &pssl, jsonBegin);
+			parseJSONMessageAir(6, &pssl, jsonBegin);
 			//displayTable(8,&pssl);
+
 			displayChart(6, &pssl);
 			Delay_ms(600000);
 

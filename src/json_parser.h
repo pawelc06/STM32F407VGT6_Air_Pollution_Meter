@@ -57,5 +57,31 @@ struct var_list_t {
 
 uint8_t parseJSONMessage(uint8_t parNum, struct par_list_str_t *pssl,char * jsonMsg);
 
+/*
+struct air_msg_t {
+	struct values_list_t values;
+	unsigned int start;
+	unsigned int end;
+	struct vart_list_t var_list1;
+
+} jsonMsg;
+*/
+
+/*
+static const struct json_attr_t time_json_attrs[] =
+		{ { "status", t_string, .addr.string = status, .len = sizeof(status) },
+				{ "message", t_string, .addr.string = message, .len =
+						sizeof(message) },
+				{ "countryCode", t_string, .addr.string = countryCode, .len =
+						sizeof(countryCode) }, { "zoneName", t_string,
+						.addr.string = zoneName, .len = sizeof(zoneName) }, {
+						"abbreviation", t_string, .addr.string = abbreviation,
+						.len = sizeof(abbreviation) }, { "gmtOffset", t_string,
+						.addr.string = gmtOffset, .len = sizeof(gmtOffset) },
+				{ "dst", t_string, .addr.string = dst, .len = sizeof(dst) }, {
+						"timestamp", t_uinteger, .addr.uinteger = &timestamp },
+				{ NULL }, };
+				*/
+
 
 #endif /* SRC_JSON_PARSER_H_ */

@@ -6,6 +6,11 @@
  */
 
 #include "wifi.h"
+#include "json_parser.h"
+#include "test_response.h"
+
+
+
 extern char serialBuffer[USART_BUFFER_SIZE];
 
 void initWiFiModule() {
@@ -111,4 +116,42 @@ bool enterCommandMode() {
 		return false;
 	}
 	return true;
+}
+
+int getPollutionIndex(char * serialBuffer) {
+	uint8_t c;
+	int httpResponseLength;
+	char lenStr[5];
+	memset(serialBuffer, 0, 4096);
+
+#ifdef TEST_MODE
+	strcpy(serialBuffer,testResponse);
+	httpResponseLength = strlen(serialBuffer);
+#else
+
+	TM_USART_ClearBuffer(USART2);
+
+	//bielany
+	TM_USART_Puts(USART2,
+			"GET /bielany/bielany.php?_dc=1508578334779&filename=bielany.dat&s=1508538734&e=1508578334&vars=050CO%3AA1h%2C050SO2%3AA1h%2C050O3%3AA1h%2C050BZN%3AA1h%2C050PM10%3AA1h%2C050PM25%3AA1h%2C050N HTTP/1.1\r\n");
+	TM_USART_Puts(USART2, "Accept-Encoding: gzip,deflate\r\n");
+	TM_USART_Puts(USART2, "Host: x34.dacsystem.pl\r\n");
+	TM_USART_Puts(USART2, "Connection: Keep-Alive\r\n\r\n");
+
+	Delay_ms(5000);
+	int i = 0;
+
+	while (!TM_USART_BufferEmpty(USART2)) {
+		c = TM_USART_Getc(USART2);
+		//TM_USART_Putc(USART1, c);
+		serialBuffer[i] = c;
+		i++;
+
+	}
+	serialBuffer[i] = 0;
+
+	httpResponseLength = strlen(serialBuffer);
+#endif
+
+	return httpResponseLength;
 }

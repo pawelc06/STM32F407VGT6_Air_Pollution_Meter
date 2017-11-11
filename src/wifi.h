@@ -14,8 +14,11 @@
 #include "stm32f4xx.h"
 #include "LCD_STM32F4.h"
 
+#define TEST_MODE 1
+
 void initWiFiModule();
 bool enterCommandMode();
+int getPollutionIndex(char * serialBuffer);
 
 
 #endif /* INC_WIFI_H_ */

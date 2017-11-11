@@ -180,19 +180,6 @@ int main(void) {
 
 	TM_USART_Init(USART2, TM_USART_PinsPack_1, 115200);
 
-	//time server
-	initWiFiModule("172.110.8.235");
-	Delay_ms(5000);
-	getTimeFromWeb(serialBuffer);
-	if (serialBuffer)
-		parseDateTime(serialBuffer);
-
-#ifndef TEST_MODE
-	//air server
-	initWiFiModule("85.25.104.143");
-	Delay_ms(5000);
-#endif
-
 	while (1) {
 		//time server
 		initWiFiModule("172.110.8.235");
@@ -201,8 +188,11 @@ int main(void) {
 		if (serialBuffer)
 			parseDateTime(serialBuffer);
 
+#ifndef TEST_MODE
+		//air server
 		initWiFiModule("85.25.104.143");
 		Delay_ms(5000);
+#endif
 
 		Set_Font(&Font8x12);
 		Display_String(75, 310, "Sending HTTP Request ->", LCD_WHITE);

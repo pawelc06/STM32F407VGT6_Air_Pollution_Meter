@@ -15,7 +15,7 @@ extern char serialBuffer[USART_BUFFER_SIZE];
 
 void initWiFiModule(char *ipAddress) {
 	bool resWiFi;
-
+	Set_Font(&Font8x12);
 	TM_GPIO_SetPinHigh(GPIOA, GPIO_Pin_4);
 	Delay_ms(500);
 	TM_GPIO_SetPinLow(GPIOA, GPIO_Pin_4);

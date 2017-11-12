@@ -16,7 +16,7 @@ static char zoneName[20];
 static char abbreviation[10];
 static char gmtOffset[10];
 static char dst[10];
-static unsigned int timestamp;
+static int timestamp;
 
 
 #define AIR_MAX_SAMPLES 25
@@ -81,6 +81,8 @@ uint8_t parseJSONMessageAir(uint8_t parNum, struct par_list_str_t *pssl,
 		char * jsonMsg);
 uint8_t parseJSONMessageMJSON(uint8_t parNum, struct par_list_str_t *pssl,
 		char * jsonMsg);
+uint32_t parseDateTime(char *buffer);
+
 
 
 

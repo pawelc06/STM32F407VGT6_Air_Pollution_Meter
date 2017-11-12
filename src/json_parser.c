@@ -82,20 +82,28 @@ static const struct json_attr_t time_json_attrs[] =
 	  {  "abbreviation", t_string, .addr.string = abbreviation,  .len = sizeof(abbreviation) },
 	  { "gmtOffset", t_string, .addr.string = gmtOffset, .len = sizeof(gmtOffset) },
 	  { "dst", t_string, .addr.string = dst, .len = sizeof(dst) },
-	  {"timestamp", t_uinteger, .addr.uinteger = &timestamp },
+	  {"timestamp", t_integer, .addr.integer = &timestamp },
 	  { NULL }, };
 
 
-uint8_t parseDateTime(char *buffer){
+
+uint32_t parseDateTime(char *buffer){
 	 char *jsonstart = strstr(buffer,"{");
 	 int status;
-
+	 char errStr[50];
 
 
 	 if(jsonstart){
 		 status = json_read_object(jsonstart, time_json_attrs, NULL);
-		 return 0;
-	 } else return -1;
+		 if (status != 0){
+		 	sprintf(errStr,json_error_string(status));
+		 	return -1;
+		 }
+		 return timestamp;
+	 } else {
+
+		 return -1;
+	 }
  }
 
 /*

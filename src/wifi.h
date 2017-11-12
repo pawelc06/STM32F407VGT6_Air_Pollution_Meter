@@ -19,6 +19,7 @@
 void initWiFiModule(char *ipAddress);
 bool enterCommandMode();
 int getPollutionIndex(char * serialBuffer);
+int getTimeFromWeb(char * serialBuffer);
 
 
 #endif /* INC_WIFI_H_ */

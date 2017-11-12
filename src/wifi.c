@@ -21,10 +21,11 @@ void initWiFiModule(char *ipAddress) {
 	TM_GPIO_SetPinLow(GPIOA, GPIO_Pin_4);
 	Delay_ms(300);
 	TM_GPIO_SetPinHigh(GPIOA, GPIO_Pin_4);
+	Clear_Screen(0x0000);
 	Display_String(15, 310, "Waiting for READY...", LCD_WHITE);
 	while (TM_GPIO_GetInputPinValue(GPIOC, GPIO_Pin_6))
 		;
-	Clear_Screen(0x0000);
+
 	Display_String(30, 310, "READY! Waiting for WiFi link...", LCD_WHITE);
 
 	while (!TM_GPIO_GetInputPinValue(GPIOC, GPIO_Pin_7))

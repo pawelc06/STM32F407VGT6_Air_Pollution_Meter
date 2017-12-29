@@ -16,15 +16,26 @@
 uint8_t parseJSONMessageAir(uint8_t parNum, struct par_list_str_t *pssl,
 		char * jsonMsg) {
 
+	char * jsonBegin;
 	char *colonPtr;
 	char *currStart;
 	char *endPtr;
 	char val_str[11];
 	int i;
 
-	endPtr = strstr(jsonMsg,"],[");
+	jsonBegin = jsonMsg;
 
-	currStart = jsonMsg;
+	for (int i = 0; i < parNum; i++) {
+
+				jsonBegin = strstr(jsonBegin + 1, "[");
+			}
+
+	if(!jsonBegin)
+		return -1;
+
+	endPtr = strstr(jsonBegin,"],[");
+
+	currStart = jsonBegin;
 	pssl->par_list[parNum - 1].last_sample_index = AIR_MAX_SAMPLES - 1;
 
 	for (i = 0; i < AIR_MAX_SAMPLES; i++) {
@@ -40,7 +51,7 @@ uint8_t parseJSONMessageAir(uint8_t parNum, struct par_list_str_t *pssl,
 			strncpy(pssl->par_list[parNum - 1].sample_list[i].t_str, currStart,
 					10);
 		} else {
-			return -1;
+			return -2;
 		}
 
 		//we look for v
@@ -50,12 +61,13 @@ uint8_t parseJSONMessageAir(uint8_t parNum, struct par_list_str_t *pssl,
 		if (colonPtr) {
 			currStart = colonPtr + 1;
 			strncpy(val_str, currStart, 4);
+			val_str[4] = 0;
 
 				strcpy(pssl->par_list[parNum - 1].sample_list[i].v_str,
 						val_str);
 
 		} else {
-			return -1;
+			return -3;
 		}
 
 		//look for s and skip
@@ -63,7 +75,7 @@ uint8_t parseJSONMessageAir(uint8_t parNum, struct par_list_str_t *pssl,
 		if (colonPtr) {
 			currStart = colonPtr + 1;
 		} else {
-			return -1;
+			return -4;
 		}
 
 	}

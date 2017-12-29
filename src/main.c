@@ -193,6 +193,7 @@ int main(void) {
 	char * jsonBegin;
 
 	int httpRespLength;
+	int result;
 	char lenString[5];
 	uint16_t s;
 	uint8_t size;
@@ -226,7 +227,8 @@ int main(void) {
 	while (1) {
 		//time server
 	if(s%144 == 0){ //every 24h so time synchronization
-		initWiFiModule("172.110.8.235");
+		//initWiFiModule("172.110.8.235");
+		initWiFiModule("155.94.164.105");
 		Delay_ms(5000);
 
 		if (getTimeFromWeb(serialBuffer) ){
@@ -263,13 +265,12 @@ int main(void) {
 		 */
 
 		jsonBegin = serialBuffer;
-		for (int i = 0; i < 6; i++) {
 
-			jsonBegin = strstr(jsonBegin + 1, "[");
-		}
 
-		if (jsonBegin) {
-			parseJSONMessageAir(6, &pssl, jsonBegin);
+			//result = parseJSONMessageAir(6, &pssl, jsonBegin);
+
+		if (jsonBegin && httpRespLength && !parseJSONMessageAir(6, &pssl, jsonBegin)) {
+
 			//displayTable(8,&pssl);
 
 			displayChart(6, &pssl);

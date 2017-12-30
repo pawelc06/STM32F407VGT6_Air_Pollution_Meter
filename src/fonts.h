@@ -17,6 +17,7 @@ extern sFONT Font12x12;
 extern sFONT Font8x12;
 extern sFONT Font8x8;
 
+
 #define LINE(x) ((x) * (((sFONT *)LCD_GetFont())->Height))
 
 #endif /* __FONTS_H */

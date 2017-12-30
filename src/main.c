@@ -68,7 +68,7 @@ void displayTable(uint8_t parNum, struct par_list_str_t *pssl) {
 	}
 }
 
-void displayChart(uint8_t parNum, struct par_list_str_t *pssl) {
+void displayChartPM25(uint8_t parNum, struct par_list_str_t *pssl) {
 	struct tm time1;
 	char timeStr[9];
 	int i;
@@ -159,6 +159,107 @@ void displayChart(uint8_t parNum, struct par_list_str_t *pssl) {
 			color);
 }
 
+void displayChartTemperature(uint8_t parNum, struct par_list_str_t *pssl) {
+	struct tm time1;
+	char timeStr[9];
+	int i;
+	int j = YMAX - 35;
+	int h;
+	uint16_t val;
+	uint16_t prev_val;
+	uint16_t color;
+
+	Clear_Screen(0xFFFF);
+	Set_Font(&Font8x12);
+
+	//horizontal axis
+	Draw_Line(XMAX - 20, YMAX - 40 + 5, XMAX - 20, 20, LCD_BLUE);
+
+	//vertical axis
+	Draw_Line(XMAX - 20, YMAX - 40 + 5, 20, YMAX - 40 + 5, LCD_BLUE);
+
+
+	Draw_Line(XMAX - 10 * 3 - 20, YMAX - 40 + 5, XMAX - 10 * 3 - 20, 20,
+		LCD_GREY);
+	Draw_Line(XMAX - 20 * 3 - 20, YMAX - 40 + 5, XMAX - 20 * 3 - 20, 20,
+	LCD_GREY);
+	Draw_Line(XMAX - 30 * 3 - 20, YMAX - 40 + 5, XMAX - 30 * 3 - 20, 20,
+		LCD_GREY);
+	Draw_Line(XMAX - 40 * 3 - 20, YMAX - 40 + 5, XMAX - 40 * 3 - 20, 20,
+	LCD_GREY);
+	Draw_Line(XMAX - 50 * 3 - 20, YMAX - 40 + 5, XMAX - 50 * 3 - 20, 20,
+		LCD_GREY);
+	Draw_Line(XMAX - 60 * 3 - 20, YMAX - 40 + 5, XMAX - 60 * 3 - 20, 20,
+	LCD_GREY);
+
+
+	Display_String(XMAX - 10 * 3 - 20 - 6, YMAX - 5 - 8 + 5, "-10", LCD_BLACK);
+	Display_String(XMAX - 20 * 3 - 20 - 6, YMAX - 5 - 8 + 5, " 0", LCD_BLACK);
+	Display_String(XMAX - 30 * 3 - 20 - 6, YMAX - 5 - 8 + 5, "10", LCD_BLACK);
+	Display_String(XMAX - 40 * 3 - 20 - 6, YMAX - 5 - 8 + 5, "20", LCD_BLACK);
+	Display_String(XMAX - 50 * 3 - 20 - 6, YMAX - 5 - 8 + 5, "30", LCD_BLACK);
+	Display_String(XMAX - 60 * 3 - 20 - 6, YMAX - 5 - 8 + 5, "40", LCD_BLACK);
+
+	Draw_Line(XMAX - 20, 20, 20, 20, LCD_GREY);
+
+	Draw_Line(20, YMAX - 40 + 5, 20, 20, LCD_GREY);
+
+	Display_String(0, 200, "Temperatura [C]", LCD_BLACK);
+
+	for (i = 12; i <= pssl->par_list[parNum - 1].last_sample_index; i++) {
+		timeStructure1 = (time_t) atoi(
+				pssl->par_list[parNum - 1].sample_list[i].t_str);
+		time1 = *localtime(&timeStructure1);
+
+		//summer time
+		if (dst[0] == '1') {
+			h = time1.tm_hour + 2;
+		} else {
+
+			//winter time
+			h = time1.tm_hour + 1;
+		}
+
+		if (h == 24) {
+			h = 0;
+		}
+
+		if (h == 25) {
+			h = 1;
+		}
+		val = (uint16_t) atof(pssl->par_list[parNum - 1].sample_list[i].v_str);
+		prev_val = (uint16_t) atof(
+				pssl->par_list[parNum - 1].sample_list[i - 1].v_str);
+
+		itoa(h, timeStr, 10);
+
+		Draw_Line(XMAX - (prev_val+20.0f) * 3 - 20, j, XMAX - (val+20.0f) * 3 - 20, j - 20,
+		LCD_RED);
+
+		Display_String(XMAX - 18, j - 20 + 4 + 5, timeStr, LCD_BLACK);
+
+		j = j - 20;
+	}
+
+	Set_Font(&Font16x24);
+
+
+
+	if (val <= 10) {
+		color = LCD_BLUE;
+	} else if (val > 15 && val < 25) {
+		color = LCD_ORANGE;
+	} else {
+		color = LCD_RED;
+	}
+
+	Display_String(45, 190, pssl->par_list[parNum - 1].sample_list[i - 1].v_str,
+			color);
+	Display_String(45, 130, "~C",
+				color);
+
+}
+
 uint8_t synchronizeTime(uint32_t ts){
 
 	time_t timeStructure2;
@@ -201,6 +302,7 @@ int main(void) {
 	TM_RTC_t RTC_Data;
 	uint32_t ts1;
 	uint32_t rtcInitStatus;
+	uint8_t i;
 
 	/* Initialization */
 	//Initialize system
@@ -271,19 +373,37 @@ int main(void) {
 
 		if (jsonBegin && httpRespLength && !parseJSONMessageAir(6, &pssl, jsonBegin)) {
 
-			jsonBegin = serialBuffer;
+
 			result = parseJSONMessageAir(19, &pssl, jsonBegin);
 			//displayTable(8,&pssl);
 
-			displayChart(6, &pssl);
-			TM_RTC_GetDateTime(&RTC_Data, TM_RTC_Format_BIN);
-			sprintf(ts2, "%02d:%02d:%02d", RTC_Data.hours, RTC_Data.minutes, RTC_Data.seconds);
-			Set_Font(&Font8x12);
-			Display_String(0, 310, ts2, LCD_BLACK);
-			Display_String(0, 70, "T: ", LCD_BLACK);
-			Display_String(0, 45, pssl.par_list[18].sample_list[pssl.par_list[18].last_sample_index].v_str, LCD_BLACK);
-			//Display_String(0, 24, " C", LCD_BLACK);
-			Delay_ms(600000);
+			i=0;
+
+			//repeat one chart per minute five times
+			while(i<20){
+
+				displayChartPM25(6, &pssl);
+				TM_RTC_GetDateTime(&RTC_Data, TM_RTC_Format_BIN);
+				sprintf(ts2, "%02d:%02d:%02d", RTC_Data.hours, RTC_Data.minutes, RTC_Data.seconds);
+				Set_Font(&Font8x12);
+				Display_String(0, 310, ts2, LCD_BLACK);
+
+				Delay_ms(15000);
+				displayChartTemperature(19,&pssl);
+
+				TM_RTC_GetDateTime(&RTC_Data, TM_RTC_Format_BIN);
+				sprintf(ts2, "%02d:%02d:%02d", RTC_Data.hours, RTC_Data.minutes, RTC_Data.seconds);
+				Set_Font(&Font8x12);
+				Display_String(0, 310, ts2, LCD_BLACK);
+				Delay_ms(15000);
+				i++;
+			}
+
+			//Display_String(0, 70, "T:", LCD_BLACK);
+			//Display_String(0, 50, pssl.par_list[18].sample_list[pssl.par_list[18].last_sample_index].v_str, LCD_BLACK);
+			//Display_String(0, 16, "C", LCD_BLACK);
+
+			//Delay_ms(600000);
 			s++;
 
 		} else {

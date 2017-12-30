@@ -20,6 +20,7 @@ uint8_t parseJSONMessageAir(uint8_t parNum, struct par_list_str_t *pssl,
 	char *colonPtr;
 	char *currStart;
 	char *endPtr;
+	char *decimalPointPtr;
 	char val_str[11];
 	int i;
 
@@ -61,7 +62,9 @@ uint8_t parseJSONMessageAir(uint8_t parNum, struct par_list_str_t *pssl,
 		if (colonPtr) {
 			currStart = colonPtr + 1;
 			strncpy(val_str, currStart, 4);
-			val_str[4] = 0;
+			decimalPointPtr = strchr(val_str,'.');
+
+			*(decimalPointPtr+2) = 0;
 
 				strcpy(pssl->par_list[parNum - 1].sample_list[i].v_str,
 						val_str);

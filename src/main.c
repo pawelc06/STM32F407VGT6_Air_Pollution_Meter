@@ -165,8 +165,8 @@ void displayChartTemperature(uint8_t parNum, struct par_list_str_t *pssl) {
 	int i;
 	int j = YMAX - 35;
 	int h;
-	uint16_t val;
-	uint16_t prev_val;
+	int16_t val;
+	int16_t prev_val;
 	uint16_t color;
 
 	Clear_Screen(0xFFFF);
@@ -227,8 +227,8 @@ void displayChartTemperature(uint8_t parNum, struct par_list_str_t *pssl) {
 		if (h == 25) {
 			h = 1;
 		}
-		val = (uint16_t) atof(pssl->par_list[parNum - 1].sample_list[i].v_str);
-		prev_val = (uint16_t) atof(
+		val = (int16_t) atof(pssl->par_list[parNum - 1].sample_list[i].v_str);
+		prev_val = (int16_t) atof(
 				pssl->par_list[parNum - 1].sample_list[i - 1].v_str);
 
 		itoa(h, timeStr, 10);

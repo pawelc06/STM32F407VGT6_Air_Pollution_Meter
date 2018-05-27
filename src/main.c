@@ -329,8 +329,7 @@ int main(void) {
 	while (1) {
 		//time server
 	if(s%144 == 0){ //every 24h so time synchronization
-		//initWiFiModule("172.110.8.235");
-		initWiFiModule("155.94.164.105");
+		initWiFiModule("167.114.201.132");
 		Delay_ms(5000);
 
 		if (getTimeFromWeb(serialBuffer) ){

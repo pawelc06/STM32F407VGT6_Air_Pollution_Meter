@@ -33,6 +33,72 @@ char s[12];
 
 time_t timeStructure1;
 
+/*--------------------------------------------------------------------------
+  FUNC: 6/11/11 - Returns day of week for any given date
+  PARAMS: year, month, date
+  RETURNS: day of week (0-7 is Sun-Sat)
+  NOTES: Sakamoto's Algorithm
+    http://en.wikipedia.org/wiki/Calculating_the_day_of_the_week#Sakamoto.27s_algorithm
+    Altered to use char when possible to save microcontroller ram
+--------------------------------------------------------------------------*/
+char dow(int y, char m, char d)
+   {
+       static char t[] = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
+       y -= m < 3;
+       return (y + y/4 - y/100 + y/400 + t[m-1] + d) % 7;
+   }
+
+/*--------------------------------------------------------------------------
+  FUNC: 6/11/11 - Returns the date for Nth day of month. For instance,
+    it will return the numeric date for the 2nd Sunday of April
+  PARAMS: year, month, day of week, Nth occurence of that day in that month
+  RETURNS: date
+  NOTES: There is no error checking for invalid inputs.
+--------------------------------------------------------------------------*/
+char NthDate(int year, char month, char DOW, char NthWeek){
+  char targetDate = 1;
+  char firstDOW = dow(year,month,targetDate);
+  while (firstDOW != DOW){
+    firstDOW = (firstDOW+1)%7;
+    targetDate++;
+  }
+  //Adjust for weeks
+  targetDate += (NthWeek-1)*7;
+  return targetDate;
+}
+
+bool isDST(struct tm timeToCheck){
+	char lastSundayDay;
+	if(timeToCheck.tm_mon >=3 && timeToCheck.tm_mon <=8 ){ //DST is from April to September always
+		return true;
+	}
+
+	if((timeToCheck.tm_mon >=0 && timeToCheck.tm_mon <=1) || (timeToCheck.tm_mon >=10 && timeToCheck.tm_mon <=11)){ //no DST
+			return false;
+	}
+
+	if((timeToCheck.tm_mon == 3)){ //Date in April
+		lastSundayDay = NthDate(timeToCheck.tm_year+1900, timeToCheck.tm_mon+1, 0, 4);
+		if(timeToCheck.tm_mday < lastSundayDay){
+			return false;
+		} else {
+			return true;
+		}
+	}
+
+	if((timeToCheck.tm_mon == 9)){ //Date in October
+		lastSundayDay = NthDate(timeToCheck.tm_year+1900, timeToCheck.tm_mon+1, 0, 4);
+		if(timeToCheck.tm_mday < lastSundayDay){
+					return true;
+				} else {
+					return false;
+				}
+	}
+
+
+
+}
+
 
 void displayTable(uint8_t parNum, struct par_list_str_t *pssl) {
 	struct tm time1;
@@ -49,7 +115,14 @@ void displayTable(uint8_t parNum, struct par_list_str_t *pssl) {
 		timeStructure1 = (time_t) atoi(
 				pssl->par_list[parNum - 1].sample_list[i].t_str);
 		time1 = *localtime(&timeStructure1);
-		h = time1.tm_hour + 2;
+		bool isDst = isDST(time1);
+		if(isDst){
+			h = time1.tm_hour + 3;
+		} else {
+			h = time1.tm_hour + 2;
+		}
+
+
 		if (h == 24) {
 			h = 0;
 		}
@@ -117,7 +190,15 @@ void displayChartPM25(uint8_t parNum, struct par_list_str_t *pssl) {
 				pssl->par_list[parNum - 1].sample_list[i].t_str);
 		time1 = *localtime(&timeStructure1);
 
+		bool isDst = isDST(time1);
+				if(isDst){
+					h = time1.tm_hour + 2;
+				} else {
+					h = time1.tm_hour + 1;
+				}
+
 		//summer time
+				/*
 		if (dst[0] == '1') {
 			h = time1.tm_hour + 2;
 		} else {
@@ -125,6 +206,7 @@ void displayChartPM25(uint8_t parNum, struct par_list_str_t *pssl) {
 			//winter time
 			h = time1.tm_hour + 1;
 		}
+		*/
 
 		if (h == 24) {
 			h = 0;
@@ -329,7 +411,7 @@ int main(void) {
 	while (1) {
 		//time server
 	if(s%144 == 0){ //every 24h so time synchronization
-		initWiFiModule("167.114.201.132");
+		initWiFiModule("173.82.227.219");
 		Delay_ms(5000);
 
 		if (getTimeFromWeb(serialBuffer) ){

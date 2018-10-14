@@ -44,13 +44,11 @@ void initWiFiModule(char *ipAddress) {
 
 	TM_USART_ClearBuffer(USART2);
 
-	//TM_USART_Puts(USART2,"AT+NETP=TCP,Client,80,192.168.0.120\r\n");
 
-	//aqi.cn
-	//TM_USART_Puts(USART2, "AT+NETP=TCP,Client,80,139.162.71.178\r\n");
 
-	//sjp.pl
-	//TM_USART_Puts(USART2, "AT+NETP=TCP,Client,80,195.187.34.140\r\n");
+	Display_String(75, 310, "VER:", LCD_WHITE);
+    Display_String(90, 310, serialBuffer, LCD_WHITE);
+
 
 	TM_USART_Puts(USART2, "AT+NETP=TCP,Client,80,");
 	TM_USART_Puts(USART2, ipAddress);
